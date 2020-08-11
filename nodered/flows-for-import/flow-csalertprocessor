@@ -1,0 +1,1089 @@
+[
+    {
+        "id": "724c8778.0f1e68",
+        "type": "tab",
+        "label": "CryptoSignal_AlertProcessor_v0.1.12.0",
+        "disabled": false,
+        "info": "Alpha version 0.1.12.0\n\nOriginally created in 2019 by David Salter (@dasalter)\nRewritten in 2020\n\nFor use with CryptoSignals and a TIG stack (Telegraf, InfluxDB, Grafana)\n\nLiability:\n\nI am not a financial adviser, nor is this tool. The use of this flow is as an educational and informational tool and nothing more. The accuracy of information processed by this flow is not guaranteed due to the use of third party software and information outside of the control of this flow. None of the contributors to this project are liable for any losses you may incur. Be wise and always do your own research.\n\nIt is recommended that you begin by learning the core principles used in traditional asset classes since they are less volatile & apply your knowledge in simulated trading before liquidating your dreams.\n\nPre-requisites:\n\nNode-Red - This flow has been tested with v1.06 and v1.1 of Node-Red using the Alpine image. Results may vary using other variants.\n\nThe InfluxDB node (https://flows.nodered.org/node/node-red-contrib-influxdb) will need to be installed prior to importing this flow. This can be done from the Node-Red menu (burger bar top right), Manage Palette option, Install tab, Search for InfluxDB and then install.\n\nSimilarly, the Simple Message Queue node (https://flows.nodered.org/node/node-red-contrib-simple-message-queue) will need to be installed using the same method.\n\nExternal Software (Dependencies):\n\nCryptoSignal - This flow uses the Develop branch of CryptoSignal as additional Indicators and Signals are available in this branch. This flow is unlikely to work with the Master branch. Develop branch can be found at (https://github.com/CryptoSignal/crypto-signal/tree/develop)\n\nInfluxDB - Output from this flow has only been tested with v1.8 of InfluxDB. Results with the latest v2.0 are unknown and should be avoided until confirmation of comatability. https://hub.docker.com/_/influxdb\n\nExternal Software (Optional):\n\nGrafana - Tested with v6.6 and v7.0 of the Grafana dashboard. https://hub.docker.com/r/grafana/grafana\n"
+    },
+    {
+        "id": "e12b121d.7c608",
+        "type": "http in",
+        "z": "724c8778.0f1e68",
+        "name": "Crypto-Signals",
+        "url": "/cryptosignalsdev",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 140,
+        "y": 100,
+        "wires": [
+            [
+                "b60e764b.1d46d8",
+                "613a946c.de7c6c"
+            ]
+        ]
+    },
+    {
+        "id": "b60e764b.1d46d8",
+        "type": "http response",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 110,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "613a946c.de7c6c",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Parser",
+        "func": "var string = msg.payload.messages;\nvar obj = JSON.parse(string);\nmsg.payload = obj;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 350,
+        "y": 100,
+        "wires": [
+            [
+                "94175350.664fe"
+            ]
+        ]
+    },
+    {
+        "id": "48c98340.b14bac",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Flow for Crypto Signals",
+        "info": "Process Signals received from CryptoSignals webhook\n\nThis flow parses the initial webhook input from CryptoSignals, processes the data in manageable chunks, removes unwanted fields, re-formats data fields in and writes the result to an array that is ready for writing in to an InfluxDB time series database\n\nCreated by David Salter (@dasalter) in 2019\nRewritten and optimised in 2020",
+        "x": 160,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "dc68dfa7.47467",
+        "type": "influxdb batch",
+        "z": "724c8778.0f1e68",
+        "d": true,
+        "influxdb": "8a4a559a.84a3b8",
+        "precision": "",
+        "retentionPolicy": "",
+        "name": "",
+        "x": 1220,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "413fe5b5.8eb6bc",
+        "type": "split",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 110,
+        "y": 260,
+        "wires": [
+            [
+                "cbdebc37.3e8af"
+            ]
+        ]
+    },
+    {
+        "id": "ef9d8ee5.a657",
+        "type": "moment",
+        "z": "724c8778.0f1e68",
+        "name": "Correct Time",
+        "topic": "",
+        "input": "payload.creation_date",
+        "inputType": "msg",
+        "inTz": "Europe/London",
+        "adjAmount": 0,
+        "adjType": "days",
+        "adjDir": "add",
+        "format": "",
+        "locale": "en_GB",
+        "output": "payload.datetime",
+        "outputType": "msg",
+        "outTz": "ETC/GMT",
+        "x": 270,
+        "y": 260,
+        "wires": [
+            [
+                "2f05fea4.65c782",
+                "433bd73b.e01168"
+            ]
+        ]
+    },
+    {
+        "id": "fc89076c.5554b8",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "Metrics",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 1060,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "5a963e06.ec18f",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Metrics",
+        "func": "var CoreMetrics = msg.payload;\nvar Timestamp = +new Date(msg.payload.datetime)*1000000;\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.candle_period;\n\nmsg.payload = [\n    {\n        measurement:\"Metrics\",\n        fields:CoreMetrics,\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval\n        },\n        timestamp:Timestamp\n    }];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1060,
+        "y": 220,
+        "wires": [
+            [
+                "fc89076c.5554b8",
+                "dc68dfa7.47467"
+            ]
+        ]
+    },
+    {
+        "id": "a0ff480e.1f45a8",
+        "type": "change",
+        "z": "724c8778.0f1e68",
+        "name": "Transformer-1",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.candle_period",
+                "pt": "msg",
+                "to": "payload.analysis.config.candle_period",
+                "tot": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload.analysis",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload.values",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload.price_value",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload.creation_date",
+                "pt": "msg"
+            },
+            {
+                "t": "delete",
+                "p": "payload.prices",
+                "pt": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 880,
+        "y": 220,
+        "wires": [
+            [
+                "5a963e06.ec18f"
+            ]
+        ]
+    },
+    {
+        "id": "e580523f.ed32",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "FlattenValues",
+        "func": "var k1 = Object.keys(msg.payload.values);\nvar v1 = Object.values(msg.payload.values);\nvar k2 = Object.keys(msg.payload.price_value);\nvar v2 = Object.values(msg.payload.price_value);\n\n    for(var i = 0; i < k1.length; i++){ \n        msg.payload[k1[i]] = Number(v1[i]); \n    } \n\n    for(var ii = 0; ii < k2.length; ii++){ \n        msg.payload[k2[ii]] = Number(v2[ii]); \n    }\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 680,
+        "y": 220,
+        "wires": [
+            [
+                "a0ff480e.1f45a8"
+            ]
+        ]
+    },
+    {
+        "id": "a36a49f.8901ab8",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Chunk and format data",
+        "info": "Split the incoming array of objects in to individual objects ready for creation of row data\n\nEnsure that the time format is UTC (Change the region in this node to ensure that the correct output is given). This formatting also provides a basis for nanosecond epoch time input which is a requirement for InfluxDB",
+        "x": 160,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "2f05fea4.65c782",
+        "type": "switch",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "property": "payload.indicator_label",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "Signal",
+                "vt": "str"
+            },
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 2,
+        "x": 430,
+        "y": 260,
+        "wires": [
+            [
+                "de5e40cb.fb01f"
+            ],
+            [
+                "e580523f.ed32"
+            ]
+        ]
+    },
+    {
+        "id": "3f3cad12.0ecbb2",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Split metrics from signals",
+        "info": "",
+        "x": 430,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "e609dfa0.b486a",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "InitEval",
+        "func": "myArray = msg.payload;\nflow.set('numloops',myArray.length);\nflow.set('count',0);\nflow.set('bbpbuyalert','False');\nflow.set('bbpsellalert','False');\nflow.set('rsibuyalert','False');\nflow.set('rsisellalert','False');\nflow.set('stochrsibuyalert','False');\nflow.set('stochrsisellalert','False');\nflow.set('mfibuyalert','False');\nflow.set('mfisellalert','False');\nflow.set('momentumbuyalert','False');\nflow.set('momentumsellalert','False');\nflow.set('ma725crossbuyalert','False');\nflow.set('ma725crosssellalert','False');\nflow.set('ma2599crossbuyalert','False');\nflow.set('ma2599crosssellalert','False');\nflow.set('ma99200crossbuyalert','False');\nflow.set('ma99200crosssellalert','False');\nflow.set('obvbuyalert','False');\nflow.set('obvsellalert','False');\nflow.set('macdhistbuyalert','False');\nflow.set('macdhistsellalert','False');\nflow.set('ichimokubuyalert','False');\nflow.set('ichimokusellalert','False');\nflow.set('adxbuyalert','False');\nflow.set('adxsellalert','False');\nflow.set('maribbonbuyalert','False');\nflow.set('maribbonsellalert','False');\nmsg.result = myArray.length;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 860,
+        "y": 100,
+        "wires": [
+            [
+                "413fe5b5.8eb6bc",
+                "49e8d673.def9b8"
+            ]
+        ]
+    },
+    {
+        "id": "6bc3e7c0.17d2b8",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "BuySignalEval",
+        "func": "var Indicator = msg.payload.indicator_label;\nif (Indicator === \"Signal_BBP\")\nflow.set('bbpbuyalert','True');\nif (Indicator === \"Signal_StochRSI\")\nflow.set('stochrsibuyalert','True');\nif (Indicator === \"Signal_RSI\")\nflow.set('rsibuyalert','True');\nif (Indicator === \"Signal_MFI\")\nflow.set('mfibuyalert','True');\nif (Indicator === \"Signal_Momentum\")\nflow.set('momentumbuyalert','True');\nif (Indicator === \"Signal_SMA 7/25 Cross\")\nflow.set('ma725crossbuyalert','True');\nif (Indicator === \"Signal_SMA 25/99 Cross\")\nflow.set('ma2599crossbuyalert','True');\nif (Indicator === \"Signal_SMA 99/200 Cross\")\nflow.set('ma99200crossbuyalert','True');\nif (Indicator === \"Signal_OBV\")\nflow.set('obvbuyalert','True');\nif (Indicator === \"Signal_MACD Histogram\")\nflow.set('macdhistbuyalert','True');\nif (Indicator === \"Signal_Ichimoku\")\nflow.set('ichimokubuyalert','True');\nif (Indicator === \"Signal_ADX\")\nflow.set('adxbuyalert','True');\nif (Indicator === \"Signal_MA Ribbon\")\nflow.set('maribbonbuyalert','True');\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "de5e40cb.fb01f",
+        "type": "switch",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "property": "payload.status",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "cold",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "hot",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 490,
+        "y": 420,
+        "wires": [
+            [
+                "1fdd86bf.d97619",
+                "3c304d29.a581f2"
+            ],
+            [
+                "6bc3e7c0.17d2b8",
+                "d7be24b2.1ec148"
+            ]
+        ]
+    },
+    {
+        "id": "1fdd86bf.d97619",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "SellSignalEval",
+        "func": "var Indicator = msg.payload.indicator_label;\nif (Indicator === \"Signal_BBP\")\nflow.set('bbpsellalert','True');\nif (Indicator === \"Signal_StochRSI\")\nflow.set('stochrsisellalert','True');\nif (Indicator === \"Signal_RSI\")\nflow.set('rsisellalert','True');\nif (Indicator === \"Signal_MFI\")\nflow.set('mfisellalert','True');\nif (Indicator === \"Signal_Momentum\")\nflow.set('momentumsellalert','True');\nif (Indicator === \"Signal_SMA 7/25 Cross\")\nflow.set('ma725crosssellalert','True');\nif (Indicator === \"Signal_SMA 25/99 Cross\")\nflow.set('ma2599crosssellalert','True');\nif (Indicator === \"Signal_SMA 99/200 Cross\")\nflow.set('ma99200crosssellalert','True');\nif (Indicator === \"Signal_OBV\")\nflow.set('obvsellalert','True');\nif (Indicator === \"Signal_MACD Histogram\")\nflow.set('macdhistsellalert','True');\nif (Indicator === \"Signal_Ichimoku\")\nflow.set('ichimokusellalert','True');\nif (Indicator === \"Signal_ADX\")\nflow.set('adxsellalert','True');\nif (Indicator === \"Signal_MA Ribbon\")\nflow.set('maribbonsellalert','True');\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cbdebc37.3e8af",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Counter",
+        "func": "var count=flow.get('count');\ncount +=1;\nflow.set('count',count);\nmsg.count=count\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 180,
+        "y": 300,
+        "wires": [
+            [
+                "ef9d8ee5.a657"
+            ]
+        ]
+    },
+    {
+        "id": "49e8d673.def9b8",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "Number of Signals",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "result",
+        "targetType": "msg",
+        "x": 1050,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "94175350.664fe",
+        "type": "simple-queue",
+        "z": "724c8778.0f1e68",
+        "count": "1",
+        "x": 520,
+        "y": 100,
+        "wires": [
+            [
+                "b8b86c34.3f058"
+            ]
+        ]
+    },
+    {
+        "id": "b8b86c34.3f058",
+        "type": "delay",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "2",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 700,
+        "y": 100,
+        "wires": [
+            [
+                "e609dfa0.b486a",
+                "63d685d0.2d070c"
+            ]
+        ]
+    },
+    {
+        "id": "63d685d0.2d070c",
+        "type": "link out",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "links": [
+            "48fb966f.0509f8"
+        ],
+        "x": 835,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "48fb966f.0509f8",
+        "type": "link in",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "links": [
+            "63d685d0.2d070c"
+        ],
+        "x": 375,
+        "y": 40,
+        "wires": [
+            [
+                "94175350.664fe"
+            ]
+        ]
+    },
+    {
+        "id": "3c304d29.a581f2",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "SellSignals",
+        "func": "Timestamp = +new Date(msg.payload.datetime)*1000000;\nMarket = msg.payload.market;\nExchange = msg.payload.exchange;\nInterval = msg.payload.analysis.config.candle_period;\nIndicator = msg.payload.indicator;\nvar L = msg.payload.indicator_label;\nvar Label = L.slice(7);\nBaseCurrency = msg.payload.base_currency;\nQuoteCurrency = msg.payload.quote_currency;\nStatus = msg.payload.hot_cold_label;\nType = msg.payload.status;\nClosePrice = msg.payload.price_value.close;\nValues = msg.payload.values;\nValue = Number(Values[Object.keys(Values)[0]]);\n\nmsg.payload = [\n    {\n        measurement:\"Signals\",\n        fields: {\n           BaseCurrency:BaseCurrency,\n           QuoteCurrency:QuoteCurrency,\n           Lable:Label,\n           Status:Status,\n           Value:Value,\n           Side:\"Sell\"\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Indicator:Indicator,\n            Type:Type\n        },\n        timestamp: Timestamp\n    }];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 670,
+        "y": 380,
+        "wires": [
+            [
+                "8f30647c.7f0458",
+                "dc68dfa7.47467"
+            ]
+        ]
+    },
+    {
+        "id": "d7be24b2.1ec148",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "BuySignals",
+        "func": "Timestamp = +new Date(msg.payload.datetime)*1000000;\nMarket = msg.payload.market;\nExchange = msg.payload.exchange;\nInterval = msg.payload.analysis.config.candle_period;\nIndicator = msg.payload.indicator;\nvar L = msg.payload.indicator_label;\nvar Label = L.slice(7);\nBaseCurrency = msg.payload.base_currency;\nQuoteCurrency = msg.payload.quote_currency;\nStatus = msg.payload.hot_cold_label;\nType = msg.payload.status;\nClosePrice = msg.payload.price_value.close;\nValues = msg.payload.values;\nValue = Number(Values[Object.keys(Values)[0]]);\n\nmsg.payload = [\n    {\n        measurement:\"Signals\",\n        fields: {\n           BaseCurrency:BaseCurrency,\n           QuoteCurrency:QuoteCurrency,\n           Lable:Label,\n           Status:Status,\n           Value:Value,\n           Side:\"Buy\"\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Indicator:Indicator,\n            Type:Type\n        },\n        timestamp: Timestamp\n    }];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 670,
+        "y": 460,
+        "wires": [
+            [
+                "9b19c86c.be53e8",
+                "dc68dfa7.47467"
+            ]
+        ]
+    },
+    {
+        "id": "8f30647c.7f0458",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "Sell Signal",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 850,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "9b19c86c.be53e8",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "Buy Signal",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 850,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "433bd73b.e01168",
+        "type": "switch",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "property": "count",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "numloops",
+                "vt": "flow"
+            },
+            {
+                "t": "eq",
+                "v": "numloops",
+                "vt": "flow"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 250,
+        "y": 660,
+        "wires": [
+            [
+                "27f953b8.cce78c"
+            ],
+            [
+                "378989fa.345b66"
+            ]
+        ]
+    },
+    {
+        "id": "27f953b8.cce78c",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "Don't Analyse",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload.indicator_label",
+        "targetType": "msg",
+        "x": 360,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "669f65bc.685bcc",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "Evaluate Strategy",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "count",
+        "targetType": "msg",
+        "x": 370,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "378989fa.345b66",
+        "type": "delay",
+        "z": "724c8778.0f1e68",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 400,
+        "y": 660,
+        "wires": [
+            [
+                "669f65bc.685bcc",
+                "ad95e0b3.29f87",
+                "6f2657e4.65e588",
+                "bd726930.9d8528",
+                "706096d1.c26828",
+                "d832dc04.078df",
+                "53523801.1fc908",
+                "9c6ef8c7.ff5978",
+                "d9abe459.b8e878",
+                "c6dd4f1f.21da9"
+            ]
+        ]
+    },
+    {
+        "id": "bb354235.26a49",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Create flat object and remove unwanted fields",
+        "info": "",
+        "x": 770,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "d89f1505.8f7c08",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Create Metrics records for InfluxDB",
+        "info": "",
+        "x": 1140,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "3c3e9b80.f9bd64",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Ensure correct processing order",
+        "info": "",
+        "x": 570,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "ae33856d.cfd018",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Prep for evaluators",
+        "info": "",
+        "x": 970,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "9d61cc36.97f9e",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Eval Signals and create records for InfluxDB",
+        "info": "",
+        "x": 770,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "2aa6ffa6.5ed5a",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Split Buy & Sell Signals",
+        "info": "",
+        "x": 440,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "ad95e0b3.29f87",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Sell Strategy - 5",
+        "func": "var bbp = flow.get('bbpsellalert');\nvar mfi = flow.get('mfisellalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (bbp == \"True\" && mfi == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:7\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"BBP_MFI\",\n            Side:\"Sell\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 760,
+        "wires": [
+            [
+                "6f89cbfd.0a6524",
+                "dc68dfa7.47467"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "6f89cbfd.0a6524",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "BBP & MFI Sell",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "6f2657e4.65e588",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Buy Strategy - 5",
+        "func": "var bbp = flow.get('bbpbuyalert');\nvar mfi = flow.get('mfisellalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (bbp == \"True\" && mfi == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:7\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"BBP_MFI\",\n            Side:\"Buy\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 980,
+        "wires": [
+            [
+                "35a49436.ecf59c",
+                "dc68dfa7.47467"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "35a49436.ecf59c",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "BBP & MFI Buy",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "bd726930.9d8528",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "d": true,
+        "name": "Sell Strategy - 3",
+        "func": "var stochrsi = flow.get('stochrsisellalert');\nvar rsi = flow.get('rsisellalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (stochrsi == \"True\" && rsi == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:3\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"RSI_Double\",\n            Side:\"Sell\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 680,
+        "wires": [
+            [
+                "e26cfe0c.53922",
+                "dc68dfa7.47467"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "e26cfe0c.53922",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "RSI Double Sell",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "53523801.1fc908",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "d": true,
+        "name": "Buy Strategy - 3",
+        "func": "var stochrsi = flow.get('stochrsibuyalert');\nvar rsi = flow.get('rsibuyalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (stochrsi == \"True\" && rsi == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:3\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"RSI_Double\",\n            Side:\"Buy\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 900,
+        "wires": [
+            [
+                "755f7313.47188c",
+                "dc68dfa7.47467"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "755f7313.47188c",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "RSI Double Buy",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1220,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "706096d1.c26828",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Sell Strategy - 4",
+        "func": "var stochrsi = flow.get('stochrsisellalert');\nvar rsi = flow.get('rsisellalert');\nvar bbp = flow.get('bbpsellalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (stochrsi == \"True\" && rsi == \"True\" && bbp == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:5\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"RSI_BBP_Triple\",\n            Side:\"Sell\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 720,
+        "wires": [
+            [
+                "7b6ba4d8.64d29c",
+                "dc68dfa7.47467"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "7b6ba4d8.64d29c",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "RSI BBP Triple Sell",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "d832dc04.078df",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Buy Strategy - 4",
+        "func": "var stochrsi = flow.get('stochrsibuyalert');\nvar rsi = flow.get('rsibuyalert');\nvar bbp = flow.get('bbpbuyalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (stochrsi == \"True\" && rsi == \"True\" && bbp == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:5\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"RSI_BBP_Triple\",\n            Side:\"Buy\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 940,
+        "wires": [
+            [
+                "1c1b06c9.b7a579",
+                "dc68dfa7.47467"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "1c1b06c9.b7a579",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "RSI BBP Triple Buy",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 960,
+        "wires": []
+    },
+    {
+        "id": "9c6ef8c7.ff5978",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Sell Strategy - 2",
+        "func": "var bbp = flow.get('bbpsellalert');\nvar stochrsi = flow.get('stochrsisellalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (bbp == \"True\" && stochrsi == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:2\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"BBP_StochRSI\",\n            Side:\"Sell\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 640,
+        "wires": [
+            [
+                "dc68dfa7.47467",
+                "cb888d0b.b63f1"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "d9abe459.b8e878",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "d": true,
+        "name": "Sell Strategy - 1",
+        "func": "var macdhist = flow.get('macdhistsellalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (macdhist == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:5\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"MACD_Histogram\",\n            Side:\"Sell\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 600,
+        "wires": [
+            [
+                "dc68dfa7.47467",
+                "fdcf165d.98b318"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "cb888d0b.b63f1",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "BBP & StochRSI Sell",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1240,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "c6dd4f1f.21da9",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "d": true,
+        "name": "Buy Strategy - 1",
+        "func": "var macdhist = flow.get('macdhistbuyalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (macdhist == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:5\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"MACD_Histogram\",\n            Side:\"Buy\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 820,
+        "wires": [
+            [
+                "dc68dfa7.47467",
+                "c6c3849c.151518"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "fdcf165d.98b318",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "MACD Histogram Sell",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1240,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "c6c3849c.151518",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "MACD Histogram Buy",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1240,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "3d9a36f8.71d1da",
+        "type": "function",
+        "z": "724c8778.0f1e68",
+        "name": "Buy Strategy - 2",
+        "func": "var bbp = flow.get('bbpbuyalert');\nvar stochrsi = flow.get('stochrsibuyalert');\nvar Market = msg.payload.market;\nvar Exchange = msg.payload.exchange;\nvar Interval = msg.payload.analysis.config.candle_period;\n\nif (bbp == \"True\" && stochrsi == \"True\") {\nmsg.payload = [\n{\n        measurement:\"Alerts\",\n        fields: {\n           Weighting:2\n        },\n        tags:{\n            Market:Market,\n            Exchange:Exchange,\n            Interval:Interval,\n            Strategy:\"BBP_StochRSI\",\n            Side:\"Buy\"\n        },\n        timestamp: new Date()\n        }];\n  return [msg, null]\n} else {\n  return [null, msg]\n}",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 680,
+        "y": 860,
+        "wires": [
+            [
+                "107d6a12.6189e6"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "107d6a12.6189e6",
+        "type": "debug",
+        "z": "724c8778.0f1e68",
+        "name": "BBP & StochRSI Buy",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1240,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "9d47fc88.d93c8",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Ensure all alerts for Market pair have been received",
+        "info": "",
+        "x": 290,
+        "y": 760,
+        "wires": []
+    },
+    {
+        "id": "a5f2494c.eb8868",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Evaluate strategies",
+        "info": "",
+        "x": 690,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "5a2407af.f2d228",
+        "type": "comment",
+        "z": "724c8778.0f1e68",
+        "name": "Write results to InfluxDB",
+        "info": "",
+        "x": 1250,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "8a4a559a.84a3b8",
+        "type": "influxdb",
+        "z": "",
+        "hostname": "influxdb-csd",
+        "port": "8086",
+        "protocol": "http",
+        "database": "cryptosignals",
+        "name": "InfluxDB-CSD",
+        "usetls": false,
+        "tls": ""
+    }
+]
