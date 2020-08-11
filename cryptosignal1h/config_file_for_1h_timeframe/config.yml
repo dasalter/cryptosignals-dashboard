@@ -1,0 +1,341 @@
+settings:
+    log_level: INFO
+    update_interval: 810
+    enable_charts: false
+    timezone: Europe/London
+    market_pairs:
+      - BTC/USDT
+      - ETH/USDT
+      - LINK/USDT
+      - BNB/USDT
+exchanges:
+  binance:
+    required:
+      enabled: true
+indicators:
+  iiv:
+    - enabled: false
+      candle_period: 5m
+      alert_enabled: false
+      alert_frequency: once
+      hot: 5
+      cold: 0
+      signal: 
+        - iiv
+      hot_label: 'Volume Increase (Pump)'
+      cold_label: 'Volume Decrease (Dump)'
+      indicator_label: 'IIV'
+  bbp:
+    - enabled: true
+      candle_period: 1h
+      alert_enabled: true
+      alert_frequency: always
+      period_count: 20
+      hot: 0.5
+      cold: 0.5
+      std_dev: 2.5
+      signal:
+        - bbp
+        - mfi
+      hot_label: 'Lower Band'
+      cold_label: 'Upper Band'
+      indicator_label: 'BBP'
+    - enabled: true
+      candle_period: 1h
+      alert_enabled: true
+      alert_frequency: once
+      period_count: 20
+      hot: 0.05
+      cold: 0.95
+      std_dev: 2.5
+      signal:
+        - bbp
+        - mfi
+      hot_label: 'Lower Band'
+      cold_label: 'Upper Band'
+      indicator_label: 'Signal_BBP'
+  ma_crossover:
+    - enabled: true
+      candle_period: 1h
+      alert_enabled: true
+      alert_frequency: once
+      exponential: false
+      ma_fast: 7
+      ma_slow: 25
+      signal:
+        - open
+        - close
+      hot_label: 'Crossing Up'
+      cold_label: 'Crossing Down'
+      indicator_label: 'Signal_SMA 7/25 Cross'
+    - enabled: true
+      candle_period: 1h
+      alert_enabled: true
+      alert_frequency: once
+      exponential: false
+      ma_fast: 25
+      ma_slow: 99
+      signal:
+        - open
+        - close
+      hot_label: 'Crossing Up'
+      cold_label: 'Crossing Down'
+      indicator_label: 'Signal_SMA 25/99 Cross'
+    - enabled: true
+      candle_period: 1h
+      alert_enabled: true
+      alert_frequency: once
+      exponential: false
+      ma_fast: 99
+      ma_slow: 200
+      signal:
+        - open
+        - close
+      hot_label: 'Crossing Up'
+      cold_label: 'Crossing Down'
+      indicator_label: 'Signal_SMA 99/200 Cross'     
+  momentum:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - momentum
+      hot: 0
+      cold: 0
+      candle_period: 1h
+      period_count: 10
+      hot_label: 'Increased momentum'
+      cold_label: 'Decreased momentum'
+      indicator_label: 'Momentum'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: once
+      signal:
+        - momentum
+      hot: 0
+      cold: 0
+      candle_period: 1h
+      period_count: 10
+      hot_label: 'Increased momentum'
+      cold_label: 'Decreased momentum'
+      indicator_label: 'Signal_Momentum'
+  mfi:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - mfi
+      hot: 50
+      cold: 50
+      hot_label: 'Oversold'
+      cold_label: 'Overbought'
+      candle_period: 1h
+      period_count: 14
+      indicator_label: 'MFI'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - mfi
+      hot: 20
+      cold: 80
+      hot_label: 'Oversold'
+      cold_label: 'Overbought'
+      candle_period: 1h
+      period_count: 14
+      indicator_label: 'Signal_MFI'
+  obv:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - obv
+      hot: 0
+      cold: 0
+      candle_period: 1h
+      hot_label: 'Positive'
+      cold_label: 'Negative'
+      indicator_label: 'OBV'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: once
+      signal:
+        - obv
+      hot: 0
+      cold: 0
+      candle_period: 1h
+      hot_label: 'Positive'
+      cold_label: 'Negative'
+      indicator_label: 'Signal_OBV'
+  rsi:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - rsi
+      hot: 50
+      cold: 50
+      hot_label: 'Oversold'
+      cold_label: 'Overbought'
+      candle_period: 1h
+      period_count: 14
+      indicator_label: 'RSI'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - rsi
+      hot: 30
+      cold: 70
+      hot_label: 'Oversold'
+      cold_label: 'Overbought'
+      candle_period: 1h
+      period_count: 14
+      indicator_label: 'Signal_RSI'
+  stoch_rsi:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always      
+      signal:
+        - stoch_rsi
+      hot: 50
+      cold: 50
+      candle_period: 1h
+      hot_label: 'Oversold'
+      cold_label: 'Overbought'
+      period_count: 14
+      indicator_label: 'StochRSI'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always      
+      signal:
+        - stoch_rsi
+      hot: 5
+      cold: 95
+      candle_period: 1h
+      hot_label: 'Oversold'
+      cold_label: 'Overbought'
+      period_count: 14
+      indicator_label: 'Signal_StochRSI'
+  macd:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - macdhist
+      hot: 0
+      cold: 0
+      candle_period: 1h
+      hot_label: 'Uptrend'
+      cold_label: 'Downtrend'
+      indicator_label: 'MACD Histogram'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: once
+      signal:
+        - macdhist
+      hot: 0
+      cold: 0
+      candle_period: 1h
+      hot_label: 'Uptrend'
+      cold_label: 'Downtrend'
+      indicator_label: 'Signal_MACD Histogram'
+  ichimoku:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: once
+      signal:
+        - leading_span_a
+        - leading_span_b
+      hot: true
+      cold: true
+      candle_period: 1h
+      hot_label: 'Alert Hot'
+      cold_label: 'Alert Cold'
+      indicator_label: 'Signal_Ichimoku'
+  adx:
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: always
+      signal:
+        - adx
+        - pdi
+        - ndi
+      hot: 40
+      cold: 40
+      candle_period: 1h
+      period_count: 14
+      hot_label: 'Normal/Low trend strength'
+      cold_label: 'High trend strength'
+      indicator_label: 'ADX'
+    - enabled: true
+      alert_enabled: true
+      alert_frequency: once
+      signal:
+        - adx
+        - pdi
+        - ndi
+      hot: 20
+      cold: 40
+      candle_period: 1h
+      period_count: 14
+      hot_label: 'Low trend strength'
+      cold_label: 'High trend strength'
+      indicator_label: 'Signal_ADX'
+  ma_ribbon:
+        - enabled: true
+          alert_enabled: true
+          alert_frequency: once
+          signal:
+            - pval
+            - corr
+          hot: 0
+          cold: 0
+          hot_label: 'Uptrend'
+          cold_label: 'Downtrend'
+          candle_period: 1h
+          pval_th: 20
+          ma_series: 5, 15, 25, 35, 45
+          indicator_label: 'Signal_MA Ribbon'
+informants:
+  vwap:
+    - enabled: true
+      signal:
+        - vwap
+      candle_period: 1h
+      period_count: 14
+  sma:
+    - enabled: true
+      signal:
+        - sma
+      candle_period: 1h
+      period_count: 20
+  ema:
+    - enabled: true
+      signal:
+        - ema
+      candle_period: 1h
+      period_count: 26
+  bollinger_bands:
+    - enabled: true
+      signal:
+        - upperband
+        - middleband
+        - lowerband
+      candle_period: 1h
+      period_count: 20
+  ohlcv:
+    - enabled: true
+      signal:
+        - high
+        - low
+        - close
+      candle_period: 1h
+      period_count: 14    
+notifiers:
+    webhook:
+        required:
+            url: http://nodered:1880/csalertprocessor
+        optional:
+            username:
+            password:
