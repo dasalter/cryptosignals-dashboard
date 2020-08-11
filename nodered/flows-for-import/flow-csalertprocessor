@@ -11,7 +11,7 @@
         "type": "http in",
         "z": "724c8778.0f1e68",
         "name": "Crypto-Signals",
-        "url": "/cryptosignalsdev",
+        "url": "/csalertprocessor",
         "method": "post",
         "upload": false,
         "swaggerDoc": "",
